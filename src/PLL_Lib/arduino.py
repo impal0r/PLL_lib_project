@@ -32,7 +32,7 @@ class Arduino:
         self._used_in_with = True
         if self.port is not None:
             try:
-                self.arduino = serial.Serial(port=self.port, baudrate=9600, timeout=.1)
+                self.arduino = serial.Serial(port=self.port, baudrate=9600)#, timeout=.1)
             except Exception as e:
                 if "PermissionError" in e.args[0]:
                     raise er.PortInUseException(self.port)
@@ -47,7 +47,7 @@ class Arduino:
                 if 'arduino' in p.description.lower() or 'serial' in p.description.lower():
                     self.port = p.device
                     try:
-                        self.arduino = serial.Serial(port=self.port, baudrate=9600, timeout=.1)
+                        self.arduino = serial.Serial(port=self.port, baudrate=9600)#, timeout=.1)
                         break
                     except Exception as e:
                         if "PermissionError" in e.args[0]:
@@ -58,7 +58,7 @@ class Arduino:
                 raise er.CouldNotFindArduinoException()
         print(f'PLL_Lib version {version}: Connecting to Arduino on port {self.port}.')
         time.sleep(3)
-        print(f'Connected to Arduino!')
+        print('Connected to Arduino!')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -73,4 +73,35 @@ class Arduino:
         '''
         if type(code) is not int or not (MIN_INT <= code <= MAX_INT):
             raise er.InvalidCodeException(code, MIN_INT, MAX_INT)
+        #print('sending', code)
         self.arduino.write(bytes(str(code)+'\n', 'utf-8'))
+    
+    # @_check_with
+    # def wait_for_code(self, code: int = None, timeout = None) -> int | None:
+    #     '''
+    #     Wait for the arduino to send a numeric code
+    #     :param code: the code to wait for.
+    #     :param timeout: the timeout in seconds. If none specified, will wait forever
+    #     If no code is specified, will wait for any code, and return the code received
+    #     '''
+    #     #parameter validation
+    #     if code is not None:
+    #         if type(code) is not int or not (MIN_INT <= code <= MAX_INT):
+    #             raise er.InvalidCodeException(code, MIN_INT, MAX_INT)
+
+    #     #wait loop
+    #     if timeout is None:
+    #         has_not_timed_out = lambda: True
+    #     else:
+    #         start_time = time.time()
+    #         has_not_timed_out = lambda: time.time() < start_time + timeout
+    #     while has_not_timed_out():
+    #         #loop will hog the processor...
+    #         #is there an easy way around this without compromising response time?
+            
+
+    #     if code is None:
+    #         error_description = f"arduino did not send a code within {timeout} seconds"
+    #     else:
+    #         error_description = f"arduino did not send code {code} within {timeout} seconds"
+    #     raise TimeoutError(error_description)

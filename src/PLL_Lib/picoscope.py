@@ -92,7 +92,7 @@ class Picoscope:
         return wrapper
 
     def __init__(self, *, time_per_sample='5micro_s', voltage_range='1v', trigger_channel=None, trigger_voltage=None,
-                 rising_edge=True, trigger_offset=10, show_display=True, probe_10x=False):
+                 rising_edge=True, trigger_offset=10, show_display=True, probe_10x=False, num_samples=8000):
         '''
         Should not be initialised directly but rather used as a context manager inside a 'with' statement.
         All arguments are optional.
@@ -124,6 +124,7 @@ class Picoscope:
         if time_per_sample not in time_per_sample_options:
             raise er.InvalidTimePerSampleException(time_per_sample, time_per_sample_options)
         self._time_text, self._timebase = time_per_sample, time_per_sample_options[time_per_sample]
+        self._num_samples = num_samples
 
         self._trigger_channel = trigger_channel
         self._trigger_offset = ct.c_int16(0)
@@ -169,7 +170,8 @@ class Picoscope:
 
         self._timeInterval, self._timeUnits, self._oversample = ct.c_int32(), ct.c_int32(), ct.c_int16(1)
         maxSamplesReturn = ct.c_int32()
-        check_success(ps.ps2000_get_timebase(self._chandle, self._timebase, 8000, ct.byref(self._timeInterval),
+        check_success(ps.ps2000_get_timebase(self._chandle, self._timebase, self._num_samples,
+                                             ct.byref(self._timeInterval),
                                              ct.byref(self._timeUnits), self._oversample,
                                              ct.byref(maxSamplesReturn)))
         self._max_samples = maxSamplesReturn.value
@@ -185,6 +187,9 @@ class Picoscope:
                                         None if self._trigger_channel is None else self._trigger_voltage * self._probe_comp
                                         , 0)
         return self
+
+    # @_check_with
+    # def set_
 
     @_check_with
     def get_trace(self, status_text="Pass text using get_trace('status goes here')"):
